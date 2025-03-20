@@ -1,0 +1,2 @@
+# smartmirrorweb
+smart  mirror ( openweathermap )
