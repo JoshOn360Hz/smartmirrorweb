@@ -1,0 +1,44 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    background: black;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    text-align: center;
+    position: relative;
+}
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 1200px;
+    justify-content: space-between;
+}
+.calendar, .weather {
+    flex: 1;
+    padding: 20px;
+}
+.divider {
+    width: 2px;
+    background: white;
+}
+.weather h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.weather h1 {
+    font-size: 5.5em;
+}
+h2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px; 
+}
