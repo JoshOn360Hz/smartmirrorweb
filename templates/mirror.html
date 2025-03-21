@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/dash-style.css') }}">
+
+</head>
+<body>
+    <div class="container">
+        <div class="calendar">
+            <h2 id="calendar-title"><i class="bi bi-calendar-event me-2"></i>Today</h2>
+            <ul id="event-list"></ul>
+        </div>
+        <div class="divider"></div>
+        <div class="weather">
+            <h2 id="weather-condition">Loading...</h2>
+            <h1 id="temperature">--°</h1>
+            <p id="weather-message">Loading...</p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        let API_KEY = "";
+        let CITY = "";
+
+        async function loadSettings() {
+            try {
+                const response = await fetch("/settings");
+                const data = await response.json();
+                API_KEY = data.api_key;
+                CITY = data.city;
+                fetchWeather();
+                fetchCalendar();
+            } catch (error) {
+                console.error("Error loading settings:", error);
+            }
+        }
+
+        async function fetchWeather() {
+            if (!API_KEY) {
+                document.getElementById("weather-condition").innerText = "Missing API Key";
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&units=metric&appid=${API_KEY}`);
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+                const data = await response.json();
+                const weatherCondition = data.weather[0].main;
+
+                const weatherIcons = {
+                    "Clear": "<i class='bi bi-brightness-high-fill'></i>",
+                    "Clouds": "<i class='bi bi-cloud-fill'></i>",
+                    "Rain": "<i class='bi bi-cloud-rain-fill'></i>",
+                    "Drizzle": "<i class='bi bi-cloud-drizzle-fill'></i>",
+                    "Thunderstorm": "<i class='bi bi-cloud-lightning-rain-fill'></i>",
+                    "Snow": "<i class='bi bi-cloud-snow-fill'></i>",
+                    "Mist": "<i class='bi bi-water'></i>",
+                    "Fog": "<i class='bi bi-cloud-fog-fill'></i>",
+                    "Haze": "<i class='bi bi-cloud-haze-fill'></i>",
+                    "Smoke": "<i class='bi bi-smoke'></i>",
+                    "Dust": "<i class='bi bi-wind'></i>",
+                    "Sand": "<i class='bi bi-wind'></i>",
+                    "Ash": "<i class='bi bi-fire'></i>",
+                    "Squall": "<i class='bi bi-wind'></i>",
+                    "Tornado": "<i class='bi bi-tornado'></i>"
+                };
+
+                document.getElementById("weather-condition").innerHTML = `${CITY} <span class="ms-2">${weatherIcons[weatherCondition] || ""}</span>`;
+                document.getElementById("temperature").innerText = `${Math.round(data.main.temp)}°`;
+                document.getElementById("weather-message").innerText = data.weather[0].description || "No data";
+            } catch (error) {
+                console.error("Weather API Error:", error);
+                document.getElementById("weather-condition").innerText = "Weather Unavailable";
+            }
+        }
+
+        async function fetchCalendar() {
+            try {
+                const response = await fetch("/calendar");
+                const events = await response.json();
+                let eventList = "";
+
+                if (events.length === 0) {
+                    eventList = "<li>No events today</li>";
+                } else {
+                    events.forEach(event => {
+                        eventList += `<li class="mb-3"><strong>${event.title}</strong><br> <i class="bi bi-clock-fill"></i> ${event.time} <i class="bi bi-geo-alt-fill"></i> ${event.location}</li>`;
+                    });
+                }
+
+                document.getElementById("event-list").innerHTML = eventList;
+            } catch (error) {
+                console.error("Error fetching calendar:", error);
+            }
+        }
+
+        loadSettings();
+    </script>
+    <script>
+        async function checkForRefresh() {
+            try {
+                const response = await fetch("/check-refresh");
+                const data = await response.json();
+    
+                if (data.refresh) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error("Error checking refresh status:", error);
+            }
+        }
+    
+        setInterval(checkForRefresh, 5000); 
+        setInterval(fetchWeather, 1800000); 
+
+    </script>
+    
+</body>
+</html>
